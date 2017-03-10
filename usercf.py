@@ -4,7 +4,7 @@ import sys
 import random
 import math
 from operator import itemgetter
-
+import os
 random.seed(0)
 
 ''' 基于近邻用户的TopN推荐算法 - UserBasedCF '''
@@ -40,14 +40,14 @@ class UserBasedCF():
     # 加载数据集文件，返回一个生成器
     def loadfile(self, filename):
         fp = open(filename, 'r')
-        self.workSignal.emit('加载数据集: %s 中...' % (filename))
-        # self.workSignal.emit()
 
+        self.workSignal.emit('加载数据集: %s 中...' % (os.path.basename(filename)))
+        # self.workSignal.emit()
         
         for i, line in enumerate(fp):# 计算出用户相似度矩阵
             yield line.strip('\r\n')
         fp.close()
-        self.workSignal.emit('加载数据集: %s 已完成' % (filename))
+        self.workSignal.emit('加载数据集: %s 已完成' % (os.path.basename(filename)))
         self.workSignal.emit('数据集数据量为：%s ' %(i - 1))
 
     # 加载数据集，并将其划分为训练集和测试集

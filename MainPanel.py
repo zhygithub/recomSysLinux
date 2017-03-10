@@ -4,7 +4,7 @@ from usercf import UserBasedCF
 from itemcf import ItemBasedCF
 import os
 import time
-
+import re
 
 class taskThread(QtCore.QThread):
     workSignal = QtCore.pyqtSignal(str)
@@ -41,6 +41,9 @@ class MainPanel(QtWidgets.QWidget,Ui_MainWindow):
 
     content = str()
     lase_content = ""
+    last_user_count = 0
+    last_item_count = 0
+
 
     ways = ["ItemCF","UserCF"]
 
@@ -82,8 +85,12 @@ class MainPanel(QtWidgets.QWidget,Ui_MainWindow):
             elif os.path.exists(self.file_name):
                 user_count = self.edt_user_count.text()
                 item_count = self.edt_item_count.text()
+                self.last_user_count = user_count
+                self.last_item_count = item_count
+
                 if user_count.isdigit() and item_count.isdigit():
                     self.content = ''
+                    self.tb_result_show.clear()
                     self.task = taskThread(self.file_name, int(user_count), int(item_count), self.now_way_index)
                     self.task.workSignal.connect(self.printResult)
                     self.task.workEndSignal.connect(self.workEnd)
@@ -110,14 +117,18 @@ class MainPanel(QtWidgets.QWidget,Ui_MainWindow):
             self.info("有任务正在运行，请等待")
 
         else:
-            ISFORMAT = "%Y-%m-%d_%H:%M:%S"
+            ISFORMAT = "%Y-%m-%d"
             timeName = time.strftime(ISFORMAT, time.localtime())
-            data_name =self.ways[self.last_way_index] +"_"+  timeName + ".txt"
-
+            data_name =self.ways[self.last_way_index] +"_"+  timeName +"_"+ str(self.last_user_count) + "_" + str(self.last_item_count) +".txt"
             pwd = os.getcwd()
-            pwd = pwd[0:-2]
-            with open(pwd + "log/" + data_name, "wt") as file:
+            if not os.path.exists( pwd +"\\result"):
+                os.makedirs(pwd +"\\result")
+            result = os.path.join(pwd, "result")
+            result = os.path.join(result, data_name)
+            with open(result, "w+") as file:
                 file.write(self.content)
+            self.info("保存成功！")
+
 
 
     def printResult(self,text):
